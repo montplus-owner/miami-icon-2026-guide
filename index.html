@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Miami + Icon 2026 — Mobile Guide v0.6</title>
+<title>Miami + Icon 2026 — Mobile Guide v0.7.1</title>
 <style>
 :root{--bg:#0b1220;--card:#121b2b;--card2:#182437;--text:#f4f7fb;--muted:#9fb0c8;--accent:#4da3ff;--green:#51d88a;--yellow:#ffd166;--red:#ff6b6b;--line:#26364d}
 *{box-sizing:border-box} html{scroll-behavior:smooth}
@@ -71,16 +71,31 @@ background:#10261d;color:#b8f4cf;border:1px solid #1f6c45;box-shadow:0 6px 18px 
 .netbadge.offline{background:#3a2710;color:#ffd89a;border-color:#765c12}
 .installbox{display:none;background:#101a29;border:1px solid #2a3c55;border-radius:16px;padding:13px;margin-top:10px}
 
+
+.update-banner{display:none;position:fixed;left:12px;right:12px;top:50px;z-index:120;max-width:736px;margin:auto;
+background:#10261d;border:1px solid #1f6c45;border-radius:16px;padding:12px 13px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.update-banner.show{display:block}
+.update-banner strong{display:block;margin-bottom:4px}
+.update-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+
 </style>
 </head>
 <body>
 <div id="netBadge" class="netbadge">● ONLINE</div>
+<div id="updateBanner" class="update-banner">
+  <strong>🟢 Dostępna nowsza wersja przewodnika</strong>
+  <div class="small" id="updateText">Możesz odświeżyć aplikację bez reinstalacji.</div>
+  <div class="update-actions">
+    <button class="btn green" onclick="applyUpdate()">Odśwież teraz</button>
+    <button class="btn" onclick="document.getElementById('updateBanner').classList.remove('show')">Później</button>
+  </div>
+</div>
 <div class="wrap">
   <section class="hero" id="home">
     <div class="kicker">MIAMI + ICON OF THE SEAS • 9–20 XII 2026</div>
     <h1>Mobile Guide</h1>
     <div class="muted">OFFLINE plan + szybkie linki LIVE. Bez mikrostopów, bez przeładowania.</div>
-    <div class="status">● PROTOTYP V0.6 • PWA OFFLINE</div>
+    <div class="status">● PROTOTYP V0.7.1 • QA + ROUTE HOTFIX</div>
   </section>
 
 
@@ -203,7 +218,7 @@ const decisionAlerts = {
     {id:"mia-return",level:"red",title:"MIA: sprawdź transit alert przed wyjazdem",text:"Dostęp do Airport Orange Line bywa modyfikowany. Oficjalne komunikaty mają pierwszeństwo przed zapisanym planem.",action:"Plan A: Uber Car Seat. Transit = backup.",url:"https://www.miami-airport.com/",source:"MIA"}
   ]
 };
-const routeProfiles={"2026-12-09": {"anchor": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "primary": "transit", "primary_label": "🏨 Nawiguj do hotelu", "return": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "offline": ["Po baggage claim wejdź na Level 3 i kieruj się Skyride do MIA Mover.", "MIA Mover station: 3rd level między Dolphin i Flamingo garages.", "MIA Mover → Miami Intermodal Center / MIA Metrorail.", "Środa: Orange Line jest bazowym bezpośrednim wariantem do Government Center; LIVE może zmienić wykonanie.", "Government Center → ostatni odcinek do Courtyard wybieramy wg energii: Metromover / spacer / rideshare."], "pills": ["BAGAŻ", "MIA MOVER", "ORANGE LINE", "LIVE VERIFY"]}, "2026-12-10": {"anchor": "Wynwood Walls, 2516 NW 2nd Ave, Miami, FL 33127", "primary": "transit", "primary_label": "🎨 Nawiguj do Wynwood", "return": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "offline": ["Hotel → Bayfront pieszo / krótki Metromover, zależnie od miejsca startu.", "Downtown → Wynwood: Route 2 jest stabilnym baseline; Wynwood Trolley pozostaje alternatywą LIVE.", "Jeśli live wait zjada >20 min, przechodzimy na Uber Car Seat.", "Nie dokładamy kolejnej dzielnicy. Po Wynwood wracamy do hotelu."], "pills": ["ROUTE 2", "LIVE ETA", "UBER CAR SEAT", "RETURN BUFFER"]}, "2026-12-11": {"anchor": "South Pointe Park, 1 Washington Ave, Miami Beach, FL 33139", "primary": "transit", "primary_label": "🏖 Nawiguj do South Pointe", "return": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "offline": ["Downtown → Miami Beach: Route 100 jest bazowym połączeniem przez Miami Beach.", "Celujemy w południową część South Beach i kończymy dojście pieszo do South Pointe.", "Dzień prowadzimy liniowo: South Pointe → plaża → Lummus → Ocean Drive.", "Powrót: LIVE Route 100 / trolley / Uber Car Seat. Lincoln Road jest pierwszym elementem do usunięcia."], "pills": ["ROUTE 100", "SOUTH BEACH", "WALK LINEAR", "LIVE RETURN"]}, "2026-12-12": {"anchor": "PortMiami, Miami, FL", "primary": "driving", "primary_label": "⚓ Nawiguj do PortMiami", "return": "PortMiami, Miami, FL", "offline": ["Rano tylko śniadanie, packing i checkout.", "Najpierw w Royal sprawdź arrival slot i terminal.", "Dopiero potem zamów Uber Car Seat / transfer.", "DAY-1 BAG zostaje z Wami; nie potrzebujemy żadnej dodatkowej atrakcji przed terminalem."], "pills": ["ROYAL APP", "TERMINAL LIVE", "UBER CAR SEAT", "HARD DAY"]}, "2026-12-13": {"anchor": "Icon of the Seas", "primary": "walking", "primary_label": "🚢 Royal / showtimes", "return": "Icon of the Seas", "offline": ["Surfside jest bazą Oliwii.", "Adventure Ocean testujemy 60–90 min, bez obowiązku kontynuacji.", "Aqua Action! ma priorytet nad dokładną godziną MDR.", "Jeśli show się przesunie lub odwoła, przenosimy show — nie cały dzień."], "pills": ["SURFSIDE", "AO TEST", "AQUA ACTION", "MY TIME"]}, "2026-12-14": {"anchor": "Costa Maya Cruise Port, Mahahual, Mexico", "primary": "driving", "primary_label": "🗿 Port Costa Maya", "return": "Costa Maya Cruise Port, Mahahual, Mexico", "offline": ["Royal excursion Chacchoben 08:30 jest Planem A.", "Meeting point z biletu / Royal App ma pierwszeństwo przed przewodnikiem.", "Po powrocie około południa nie dokładamy Mahahual.", "Lunch i regeneracja na Icon."], "pills": ["08:30", "ROYAL EXCURSION", "NO MAHAHUAL", "SHIP BUFFER"]}, "2026-12-15": {"anchor": "Coxen Hole Cruise Port, Roatan, Honduras", "primary": "driving", "primary_label": "🌿 Port Roatán", "return": "Coxen Hole Cruise Port, Roatan, Honduras", "offline": ["Mangrove Canal Experience 08:00 = Plan A, jeśli Oliwia spełnia wymagania.", "Całe 3 h 30 obejmuje więcej niż sam rejs łodzią.", "Backup: Daniel Johnson’s Monkey & Sloth — kontrolowany animal encounter, nie dzika przyroda.", "Powrót planowany wcześnie, z dużym buforem przed 16:00."], "pills": ["08:00", "MANGROVES", "BACKUP READY", "16:00 SHIP"]}, "2026-12-16": {"anchor": "Chankanaab Beach Adventure Park, Cozumel, Mexico", "primary": "driving", "primary_label": "🐠 Nawiguj do Chankanaab", "return": "Cozumel Cruise Port, Cozumel, Mexico", "offline": ["Taxi → Chankanaab. Nie potrzebujemy Royal excursion.", "Najpierw spokojna woda i maska Oliwii; rafa dopiero jeśli chce.", "Rodzice mogą snorkelować na zmianę.", "Cel powrotu około 13:30–14:00, mimo odpłynięcia 18:00."], "pills": ["TAXI", "MASKA OLIWII", "PLAYGROUND FALLBACK", "BIG BUFFER"]}, "2026-12-17": {"anchor": "Icon of the Seas", "primary": "walking", "primary_label": "🎭 Royal / Wizard of Oz", "return": "Icon of the Seas", "offline": ["Powtarzamy tylko atrakcje, które faktycznie wygrały pierwszy sea day.", "Jeśli Adventure Ocean działa, rodzice dostają własny blok.", "Wizard of Oz to główny show dnia.", "Dining dostosowujemy do showtime."], "pills": ["WINNERS ONLY", "AO IF HIT", "WIZARD", "DINING FLEX"]}, "2026-12-18": {"anchor": "Perfect Day at CocoCay, Bahamas", "primary": "walking", "primary_label": "🏝 CocoCay", "return": "Perfect Day at CocoCay, Bahamas", "offline": ["Bez płatnego Thrill Waterpark jako default.", "Plaża + Splashaway / rodzinne strefy są wystarczającym CORE.", "Lunch korzystamy z included dining.", "All aboard i pogoda mają pierwszeństwo przed ostatnim punktem."], "pills": ["INCLUDED DAY", "BEACH", "SPLASHAWAY", "ALL ABOARD"]}, "2026-12-19": {"anchor": "Domino Park, 1444 SW 8th St, Miami, FL 33135", "primary": "transit", "primary_label": "🇨🇺 Nawiguj do Calle Ocho", "return": "YOTELPAD Miami, 227 NE 2nd St, Miami, FL 33132", "offline": ["Najpierw PortMiami → YOTELPAD i zostawienie bagażu.", "Government Center jest bazowym węzłem do Little Havana.", "Route 208 counter-clockwise jedzie przez SW 8th / Calle Ocho; Route 207 jest alternatywą zależnie od kierunku LIVE.", "Po lunchu: Azucar + drobne pamiątki; wracamy około 15:30–16:00."], "pills": ["208 CALLE OCHO", "SANGUICH / EL REY", "AZUCAR", "RETURN 16:00"]}, "2026-12-20": {"anchor": "Miami International Airport, Miami, FL", "primary": "driving", "primary_label": "✈️ Nawiguj do MIA", "return": "Miami International Airport, Miami, FL", "offline": ["Plan A: Uber Car Seat z YOTELPAD / Downtown do MIA.", "Transit backup w niedzielę: Government Center → Green Line southbound → Earlington Heights.", "Na Earlington Heights przesiadka na Orange Line Airport Shuttle do MIA.", "Cel MIA około 16:00 na lot 19:35. Nie optymalizujemy ostatnich 30 minut Miami."], "pills": ["UBER CAR SEAT", "SUNDAY BACKUP", "EARLINGTON HEIGHTS", "MIA 16:00"]}};
+const routeProfiles={"2026-12-09": {"anchor": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "primary": "transit", "primary_label": "🏨 Nawiguj do hotelu", "return": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "offline": ["Po baggage claim wejdź na Level 3 i kieruj się Skyride do MIA Mover.", "MIA Mover station: 3rd level między Dolphin i Flamingo garages.", "MIA Mover → Miami Intermodal Center / MIA Metrorail.", "Środa: Orange Line jest bazowym bezpośrednim wariantem do Government Center; LIVE może zmienić wykonanie.", "Government Center → ostatni odcinek do Courtyard wybieramy wg energii: Metromover / spacer / rideshare."], "pills": ["BAGAŻ", "MIA MOVER", "ORANGE LINE", "LIVE VERIFY"]}, "2026-12-10": {"anchor": "Wynwood Walls, 2516 NW 2nd Ave, Miami, FL 33127", "primary": "transit", "primary_label": "🎨 Nawiguj do Wynwood", "return": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "offline": ["Hotel → Bayfront pieszo / krótki Metromover, zależnie od miejsca startu.", "Downtown → Wynwood: Route 2 jest stabilnym baseline; Wynwood Trolley pozostaje alternatywą LIVE.", "Jeśli live wait zjada >20 min, przechodzimy na Uber Car Seat.", "Nie dokładamy kolejnej dzielnicy. Po Wynwood wracamy do hotelu."], "pills": ["ROUTE 2", "LIVE ETA", "UBER CAR SEAT", "RETURN BUFFER"]}, "2026-12-11": {"anchor": "South Pointe Park, 1 Washington Ave, Miami Beach, FL 33139", "primary": "transit", "primary_label": "🏖 Nawiguj do South Pointe", "return": "Courtyard Miami Downtown Brickell Area, 200 SE 2nd Ave, Miami, FL 33131", "offline": ["Downtown → Miami Beach: Route 100 jest bazowym połączeniem przez Miami Beach.", "Celujemy w południową część South Beach i kończymy dojście pieszo do South Pointe.", "Dzień prowadzimy liniowo: South Pointe → plaża → Lummus → Ocean Drive.", "Powrót: LIVE Route 100 / trolley / Uber Car Seat. Lincoln Road jest pierwszym elementem do usunięcia."], "pills": ["ROUTE 100", "SOUTH BEACH", "WALK LINEAR", "LIVE RETURN"]}, "2026-12-12": {"anchor": "PortMiami, Miami, FL", "primary": "driving", "primary_label": "⚓ Nawiguj do PortMiami", "return": "PortMiami, Miami, FL", "offline": ["Rano tylko śniadanie, packing i checkout.", "Najpierw w Royal sprawdź arrival slot i terminal.", "Dopiero potem zamów Uber Car Seat / transfer.", "DAY-1 BAG zostaje z Wami; nie potrzebujemy żadnej dodatkowej atrakcji przed terminalem."], "pills": ["ROYAL APP", "TERMINAL LIVE", "UBER CAR SEAT", "HARD DAY"]}, "2026-12-13": {"anchor": "Icon of the Seas", "primary": "walking", "primary_label": "🚢 Royal / showtimes", "return": "Icon of the Seas", "offline": ["Surfside jest bazą Oliwii.", "Adventure Ocean testujemy 60–90 min, bez obowiązku kontynuacji.", "Aqua Action! ma priorytet nad dokładną godziną MDR.", "Jeśli show się przesunie lub odwoła, przenosimy show — nie cały dzień."], "pills": ["SURFSIDE", "AO TEST", "AQUA ACTION", "MY TIME"]}, "2026-12-14": {"anchor": "Costa Maya Cruise Port, Mahahual, Mexico", "primary": "driving", "primary_label": "🗿 Port Costa Maya", "return": "Costa Maya Cruise Port, Mahahual, Mexico", "offline": ["Royal excursion Chacchoben 08:30 jest Planem A.", "Meeting point z biletu / Royal App ma pierwszeństwo przed przewodnikiem.", "Po powrocie około południa nie dokładamy Mahahual.", "Lunch i regeneracja na Icon."], "pills": ["08:30", "ROYAL EXCURSION", "NO MAHAHUAL", "SHIP BUFFER"]}, "2026-12-15": {"anchor": "Coxen Hole Cruise Port, Roatan, Honduras", "primary": "driving", "primary_label": "🌿 Port Roatán", "return": "Coxen Hole Cruise Port, Roatan, Honduras", "offline": ["Mangrove Canal Experience 08:00 = Plan A, jeśli Oliwia spełnia wymagania.", "Całe 3 h 30 obejmuje więcej niż sam rejs łodzią.", "Backup: Daniel Johnson’s Monkey & Sloth — kontrolowany animal encounter, nie dzika przyroda.", "Powrót planowany wcześnie, z dużym buforem przed 16:00."], "pills": ["08:00", "MANGROVES", "BACKUP READY", "16:00 SHIP"]}, "2026-12-16": {"anchor": "Chankanaab Beach Adventure Park, Cozumel, Mexico", "primary": "driving", "primary_label": "🐠 Nawiguj do Chankanaab", "return": "Cozumel Cruise Port, Cozumel, Mexico", "offline": ["Taxi → Chankanaab. Nie potrzebujemy Royal excursion.", "Najpierw spokojna woda i maska Oliwii; rafa dopiero jeśli chce.", "Rodzice mogą snorkelować na zmianę.", "Cel powrotu około 13:30–14:00, mimo odpłynięcia 18:00."], "pills": ["TAXI", "MASKA OLIWII", "PLAYGROUND FALLBACK", "BIG BUFFER"]}, "2026-12-17": {"anchor": "Icon of the Seas", "primary": "walking", "primary_label": "🎭 Royal / Wizard of Oz", "return": "Icon of the Seas", "offline": ["Powtarzamy tylko atrakcje, które faktycznie wygrały pierwszy sea day.", "Jeśli Adventure Ocean działa, rodzice dostają własny blok.", "Wizard of Oz to główny show dnia.", "Dining dostosowujemy do showtime."], "pills": ["WINNERS ONLY", "AO IF HIT", "WIZARD", "DINING FLEX"]}, "2026-12-18": {"anchor": "Perfect Day at CocoCay, Bahamas", "primary": "walking", "primary_label": "🏝 CocoCay", "return": "Perfect Day at CocoCay, Bahamas", "offline": ["Bez płatnego Thrill Waterpark jako default.", "Plaża + Splashaway / rodzinne strefy są wystarczającym CORE.", "Lunch korzystamy z included dining.", "All aboard i pogoda mają pierwszeństwo przed ostatnim punktem."], "pills": ["INCLUDED DAY", "BEACH", "SPLASHAWAY", "ALL ABOARD"]}, "2026-12-19": {"anchor": "Domino Park, 1444 SW 8th St, Miami, FL 33135", "primary": "transit", "primary_label": "🇨🇺 Nawiguj do Calle Ocho", "return": "YOTELPAD Miami, 227 NE 2nd St, Miami, FL 33132", "offline": ["Najpierw PortMiami → YOTELPAD i zostawienie bagażu.", "Government Center jest bazowym węzłem do Little Havana.", "Route 208 counter-clockwise jedzie przez SW 8th / Calle Ocho; Route 207 jest alternatywą zależnie od kierunku LIVE.", "Po lunchu: Azucar + drobne pamiątki; wracamy około 15:30–16:00."], "pills": ["208 CALLE OCHO", "SANGUICH / EL REY", "AZUCAR", "RETURN 16:00"]}, "2026-12-20": {"anchor": "Miami International Airport, Miami, FL", "primary": "driving", "primary_label": "✈️ Nawiguj do MIA", "return": "Miami International Airport, Miami, FL", "offline": ["Plan A: Uber Car Seat z YOTELPAD / Downtown do MIA.", "Transit backup w niedzielę: Government Center → Green Line northbound w kierunku Palmetto → Earlington Heights.", "Na Earlington Heights przesiadka na Orange Line Airport Shuttle do MIA.", "Cel MIA około 16:00 na lot 19:35. Nie optymalizujemy ostatnich 30 minut Miami."], "pills": ["UBER CAR SEAT", "SUNDAY BACKUP", "EARLINGTON HEIGHTS", "MIA 16:00"]}};
 const $=s=>document.querySelector(s);
 function mapsUrl(dest,mode='walking'){return 'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(dest)+'&travelmode='+mode;}
 
@@ -425,7 +440,58 @@ if(installBtn){
 }
 
 if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
-  window.addEventListener('load', ()=>navigator.serviceWorker.register('./service-worker.js').catch(()=>{}));
+  window.addEventListener('load', async ()=>{
+    try{
+      swRegistration=await navigator.serviceWorker.register('./service-worker.js');
+      navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());
+      await swRegistration.update();
+      checkGuideVersion();
+    }catch(e){}
+  });
+}else{
+  window.addEventListener('load',checkGuideVersion);
+}
+window.addEventListener('online',checkGuideVersion);
+
+
+const APP_VERSION='0.7.1';
+let swRegistration=null;
+
+function versionParts(v){return String(v).split('.').map(x=>parseInt(x,10)||0);}
+function isNewerVersion(remote,local){
+  const a=versionParts(remote), b=versionParts(local);
+  for(let i=0;i<Math.max(a.length,b.length);i++){
+    const x=a[i]||0,y=b[i]||0;
+    if(x>y) return true;
+    if(x<y) return false;
+  }
+  return false;
+}
+async function checkGuideVersion(){
+  if(!navigator.onLine) return;
+  try{
+    const r=await fetch('./version.json?ts='+Date.now(),{cache:'no-store'});
+    if(!r.ok) return;
+    const v=await r.json();
+    if(v && v.version && isNewerVersion(v.version,APP_VERSION)){
+      const b=document.getElementById('updateBanner');
+      const t=document.getElementById('updateText');
+      if(t) t.textContent=`Nowa wersja: ${v.version}${v.note?' — '+v.note:''}`;
+      if(b) b.classList.add('show');
+    }
+  }catch(e){}
+}
+async function applyUpdate(){
+  try{
+    if(swRegistration){
+      await swRegistration.update();
+      if(swRegistration.waiting){
+        swRegistration.waiting.postMessage({type:'SKIP_WAITING'});
+        return;
+      }
+    }
+  }catch(e){}
+  location.reload();
 }
 
 </script>

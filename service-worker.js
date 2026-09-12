@@ -1,9 +1,16 @@
-const CACHE='miami-icon-v0.6';
-const CORE=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./offline.html'];
+const CACHE='miami-icon-v0.7.1';
+const CORE=[
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './version.json',
+  './icon-192.png',
+  './icon-512.png',
+  './offline.html'
+];
 
 self.addEventListener('install', event=>{
   event.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)));
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', event=>{
@@ -13,21 +20,46 @@ self.addEventListener('activate', event=>{
   self.clients.claim();
 });
 
+self.addEventListener('message', event=>{
+  if(event.data && event.data.type==='SKIP_WAITING') self.skipWaiting();
+});
+
 self.addEventListener('fetch', event=>{
   const req=event.request;
   if(req.method!=='GET') return;
 
   const url=new URL(req.url);
-  const sameOrigin=url.origin===self.location.origin;
+  if(url.origin!==self.location.origin) return; // LIVE/external links bypass cache.
 
-  if(sameOrigin){
+  // Always ask network first for the version marker.
+  if(url.pathname.endsWith('/version.json')){
     event.respondWith(
-      caches.match(req).then(hit=>hit || fetch(req).then(resp=>{
+      fetch(req,{cache:'no-store'}).catch(()=>caches.match('./version.json'))
+    );
+    return;
+  }
+
+  // Navigation/index: network-first so deployments appear without reinstalling.
+  if(req.mode==='navigate' || url.pathname.endsWith('/index.html') || url.pathname.endsWith('/')){
+    event.respondWith(
+      fetch(req).then(resp=>{
+        const copy=resp.clone();
+        caches.open(CACHE).then(c=>c.put('./index.html',copy));
+        return resp;
+      }).catch(()=>caches.match('./index.html').then(x=>x||caches.match('./offline.html')))
+    );
+    return;
+  }
+
+  // Static app shell: cache-first with background refresh.
+  event.respondWith(
+    caches.match(req).then(hit=>{
+      const refresh=fetch(req).then(resp=>{
         const copy=resp.clone();
         caches.open(CACHE).then(c=>c.put(req,copy));
         return resp;
-      }).catch(()=>caches.match('./offline.html')))
-    );
-  }
-  // External LIVE links intentionally bypass cache.
+      }).catch(()=>null);
+      return hit || refresh || caches.match('./offline.html');
+    })
+  );
 });
