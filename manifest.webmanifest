@@ -1,0 +1,25 @@
+{
+  "name": "Miami + Icon 2026 — Mobile Guide",
+  "short_name": "Miami+Icon",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "lang": "pl",
+  "description": "Rodzinny przewodnik offline + LIVE dla Miami i Icon of the Seas, grudzień 2026.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
